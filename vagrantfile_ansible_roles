@@ -1,0 +1,101 @@
+# Get current role name, and append branch name and build number if set
+# Give the virtualbox name a timestamp plus random to prevent naming collision
+current_role = File.basename(File.expand_path("..", Dir.pwd))
+# Strip special characters
+current_role = current_role.gsub(/[^A-Za-z0-9 ]/, '')
+# Add timestamp and random
+current_role << "-#{Time.now.to_i}-#{rand(999)}"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "centos7", primary: true do |centos7|
+
+    # Docker provider
+    centos7.vm.provider :docker do |d, override|
+      # Change docker name
+      d.name = current_role
+      # Docker runs as root
+      override.ssh.username = 'root'
+      # Systemd needs privileged
+      d.privileged = true
+      # Custom image with ssh and systemd inside
+      # Centos7
+      d.image = "boxrick/centos7-docker-ansible"
+      # We can ssh to this docker image and it stays running forever
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+
+  config.vm.define "xenial", autostart: false do |xenial|
+
+    # Docker provider
+    xenial.vm.provider :docker do |d, override|
+      # Change docker name
+      d.name = current_role
+      # Docker runs as root
+      override.ssh.username = 'root'
+      # Systemd needs privileged
+      d.privileged = true
+      # Custom image with ssh and systemd inside
+      # Ubuntu Xenial 16.04
+      d.image = "boxrick/xenial-docker-ansible"
+      # We can ssh to this docker image and it stays running forever
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+
+  config.vm.define "bionic", autostart: false do |bionic|
+
+    # Docker provider
+    bionic.vm.provider "docker" do |d, override|
+      # Change docker name
+      d.name = current_role
+      # Docker runs as root
+      override.ssh.username = 'root'
+      # Systemd needs privileged
+      d.privileged = true
+      # Custom image with ssh and systemd inside
+      # Ubuntu Bionic 18.04
+      d.image = "boxrick/bionic-docker-ansible"
+      # We can ssh to this docker image and it stays running forever
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+
+  config.vm.define "centos6", autostart: false do |centos6|
+
+    # Docker provider
+    centos6.vm.provider :docker do |d, override|
+      # Change docker name
+      d.name = current_role
+      # Docker runs as root
+      override.ssh.username = 'root'
+      # Systemd needs privileged
+      d.privileged = true
+      # Custom image with ssh inside
+      # Centos6
+      d.image = "boxrick/centos6-docker-ansible"
+      # We can ssh to this docker image and it stays running forever
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    # Pull requirements
+    ansible.galaxy_roles_path = ".vagrant/roles"
+    # Include requirements if its present
+    if File.exist?('requirements.yml')
+      ansible.galaxy_role_file = "requirements.yml"
+    end
+    # Run playbook
+    ansible.playbook = "test.yml"
+    # Set verbosity
+    ansible.verbose = true
+    # Increase default threads and allow pipelining for speed, load in extra variables
+    ansible.raw_arguments = ['-T 25', '-e pipelining=True'] + Shellwords.shellsplit(ENV['ANSIBLE_ARGS']) if ENV['ANSIBLE_ARGS']
+  end
+end
