@@ -97,6 +97,7 @@ Vagrant.configure("2") do |config|
     # Set verbosity
     ansible.verbose = true
     # Increase default threads and allow pipelining for speed, load in extra variables
+    # An example to pass in extra variables would be: export ANSIBLE_ARGS='--extra-vars "examplevar=test"'
     ansible.raw_arguments = ['-T 25', '-e pipelining=True'] + Shellwords.shellsplit(ENV['ANSIBLE_ARGS']) if ENV['ANSIBLE_ARGS']
   end
 end
