@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
       d.privileged = true
       # Custom image with ssh inside
       # Centos6
-      d.image = "boxrick/centos6-docker-ansible"
+      d.image = "dde8a3d2c1ffa10efb279e457b9e4b/centos6-docker-ansible:latest"
       # We can ssh to this docker image and it stays running forever
       d.has_ssh = true
       d.remains_running = true
